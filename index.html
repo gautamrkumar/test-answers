@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Private Image Gallery</title>
+    <meta name="referrer" content="no-referrer">
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #password-form { text-align: center; margin-top: 50px; }
+        #error-message { color: red; display: none; margin-top: 10px; }
+        #image-gallery { display: none; margin-top: 30px; }
+        #countdown { color: #666; font-size: 0.9em; margin-top: 10px; }
+        img { max-width: 100%; margin: 10px; border: 1px solid #ddd; }
+        input[type="password"] { padding: 8px; width: 200px; }
+        button { padding: 8px 15px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background: #45a049; }
+    </style>
+    <!-- Load EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        // Initialize EmailJS (replace with your actual User ID)
+        emailjs.init('YOUR_EMAILJS_USER_ID');
+    </script>
+</head>
+<body>
+    <div id="password-form">
+        <h2>Private Image Gallery</h2>
+        <form onsubmit="checkPassword(event)">
+            <input type="password" id="password-input" placeholder="Enter password" required>
+            <button type="submit">View Images</button>
+        </form>
+        <p id="error-message"></p>
+    </div>
+
+    <div id="image-gallery">
+        <h3>Your Private Images</h3>
+        <p id="countdown"></p>
+        <div id="images-container"></div>
+    </div>
+
+    <script>
+        // Configuration
+        const PASSWORD_SEQUENCE = ["poori", "wish_i_knew_how_to_encrypt_password"];
+        const VIEWING_TIME_SEC = 15;
+        const EMAILJS_SERVICE_ID = 'service_wjmbw0h';
+        const EMAILJS_TEMPLATE_ID = 'template_74svies';
+        const YOUR_EMAIL = 'neo.anderson619@gmail.com';
+        
+        let currentPasswordIndex = localStorage.getItem('passwordIndex') || 0;
+        let accessCount = parseInt(localStorage.getItem('accessCount')) || 0;
+        let countdownInterval;
+
+        // Send email notification
+        async function sendAlert(enteredPassword, isCorrect) {
+            try {
+                const ipData = await fetch('https://api.ipify.org?format=json').then(res => res.json());
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                    to_email: YOUR_EMAIL,
+                    attempt: enteredPassword,
+                    status: isCorrect ? "✅ Correct" : "❌ Wrong",
+                    time: new Date().toLocaleString(),
+                    ip: ipData.ip,
+                    current_password: PASSWORD_SEQUENCE[currentPasswordIndex]
+                });
+            } catch (error) {
+                console.error("Failed to send alert:", error);
+            }
+        }
+
+        function checkPassword(event) {
+            event.preventDefault();
+            clearInterval(countdownInterval);
+            
+            const enteredPassword = document.getElementById('password-input').value;
+            const isCorrect = enteredPassword === PASSWORD_SEQUENCE[currentPasswordIndex];
+            
+            // Send notification (async - won't block execution)
+            sendAlert(enteredPassword, isCorrect);
+
+            if (isCorrect) {
+                document.getElementById('error-message').style.display = 'none';
+                accessCount++;
+                localStorage.setItem('accessCount', accessCount);
+                
+                if (accessCount >= 1) {
+                    currentPasswordIndex = (currentPasswordIndex + 1) % PASSWORD_SEQUENCE.length;
+                    localStorage.setItem('passwordIndex', currentPasswordIndex);
+                    localStorage.setItem('accessCount', 0);
+                }
+                
+                showImages();
+            } else {
+                document.getElementById('error-message').textContent = 'Invalid password!';
+                document.getElementById('error-message').style.display = 'block';
+            }
+        }
+
+        function showImages() {
+            document.getElementById('password-form').style.display = 'none';
+            document.getElementById('image-gallery').style.display = 'block';
+            document.getElementById('password-input').value = '';
+            
+            // Display images (update with your actual files)
+            const images = ["image1.jpg", "image2.jpg", "image3.jpg", "image4.jpg", "image5.jpg", "image6.jpg"];
+            const container = document.getElementById('images-container');
+            container.innerHTML = '';
+            
+            images.forEach(img => {
+                const imgElement = document.createElement('img');
+                imgElement.src = 'images/' + img;
+                container.appendChild(imgElement);
+            });
+
+            let secondsLeft = VIEWING_TIME_SEC;
+            updateCountdownDisplay(secondsLeft);
+            
+            countdownInterval = setInterval(() => {
+                secondsLeft--;
+                updateCountdownDisplay(secondsLeft);
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    hideImages();
+                }
+            }, 1000);
+        }
+
+        function updateCountdownDisplay(seconds) {
+            document.getElementById('countdown').textContent = 
+                `You may wanna scroll fast :)`;
+        }
+
+        function hideImages() {
+            document.getElementById('image-gallery').style.display = 'none';
+            document.getElementById('password-form').style.display = 'block';
+        }
+//Delete from here		
+		// Add this to your existing code
+		function addResetButton() {
+		const resetBtn = document.createElement('button');
+		resetBtn.textContent = 'Admin: Reset Passwords';
+		resetBtn.style = 'position: fixed; bottom: 10px; right: 10px; background: red;';
+		resetBtn.onclick = () => {
+			localStorage.removeItem('passwordIndex');
+			localStorage.removeItem('accessCount');
+			alert('Counter reset! Refresh the page.');
+		};
+		document.body.appendChild(resetBtn);
+	}
+
+// Call this when page loads
+addResetButton();
+//Delete till here	
+
+// Disable right-click
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// Disable common dev tools and save shortcuts
+document.addEventListener('keydown', e => {
+  // Block Ctrl/Command+S (Save)
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+  }
+  
+  // Block Ctrl/Command+U (View source)
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U')) {
+    e.preventDefault();
+  }
+  
+  // Block Ctrl/Command+Shift+I (Dev Tools)
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+    e.preventDefault();
+  }
+  
+  // Block F12 (Dev Tools)
+  if (e.key === 'F12') {
+    e.preventDefault();
+  }
+  
+  // Block Ctrl/Command+Shift+C (Inspect Element - Chrome/Edge)
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+    e.preventDefault();
+  }
+  
+  // Block Option+Command+I (Dev Tools - Mac)
+  if (e.altKey && e.metaKey && (e.key === 'I' || e.key === 'i')) {
+    e.preventDefault();
+  }
+  
+  // Block Option+Command+U (View source - Mac)
+  if (e.altKey && e.metaKey && (e.key === 'U' || e.key === 'u')) {
+    e.preventDefault();
+  }
+  
+  // Block Ctrl/Command+P (Print - which can save as PDF)
+  if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+    e.preventDefault();
+  }
+});
+
+// Extra protection against dragging images out
+document.addEventListener('dragstart', e => {
+  if (e.target.tagName === 'IMG') {
+    e.preventDefault();
+  }
+});	
+    </script>
+</body>
+</html>
