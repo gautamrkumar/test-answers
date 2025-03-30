@@ -29,6 +29,7 @@
             <button type="submit">View Images</button>
         </form>
         <p id="error-message"></p>
+		<p> I would to meet you if you're OK with it. You can reach out to me at ‪(614) 636-1290‬ </p>
     </div>
 
     <div id="image-gallery">
@@ -135,20 +136,20 @@
         }
 //Delete from here		
 		// Add this to your existing code
-		function addResetButton() {
-		const resetBtn = document.createElement('button');
-		resetBtn.textContent = 'Admin: Reset Passwords';
-		resetBtn.style = 'position: fixed; bottom: 10px; right: 10px; background: red;';
-		resetBtn.onclick = () => {
-			localStorage.removeItem('passwordIndex');
-			localStorage.removeItem('accessCount');
-			alert('Counter reset! Refresh the page.');
-		};
-		document.body.appendChild(resetBtn);
-	}
+		// function addResetButton() {
+		// const resetBtn = document.createElement('button');
+		// resetBtn.textContent = 'Admin: Reset Passwords';
+		// resetBtn.style = 'position: fixed; bottom: 10px; right: 10px; background: red;';
+		// resetBtn.onclick = () => {
+			// localStorage.removeItem('passwordIndex');
+			// localStorage.removeItem('accessCount');
+			// alert('Counter reset! Refresh the page.');
+		// };
+		// document.body.appendChild(resetBtn);
+	// }
 
 // Call this when page loads
-addResetButton();
+// addResetButton();
 //Delete till here	
 
 // Disable right-click
